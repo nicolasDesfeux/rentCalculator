@@ -1,0 +1,11 @@
+<footer>
+    <ul>
+        <li><a href="index">Index</a></li>
+        <li><a href="newEntry">newEntry</a></li>
+        <li><a href="monthlySummary">monthlySummary</a></li>
+        <li><a href="monthlyView">monthlyView</a></li>
+    </ul>
+
+    <p>Posted by: Nicolas Desfeux</p>
+    <p>Contact information: <a href="mailto:nicolas.desfeux@gmail.com">nicolas.desfeux@gmail.com</a>.</p>
+</footer>

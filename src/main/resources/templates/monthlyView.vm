@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Rent Calculator</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css"/>
+    <link type="text/css" rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css"/>
+
+    <script
+            src="https://code.jquery.com/jquery-3.1.1.js"
+            integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="
+            crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
+
+    <script>
+        $(function () {
+            $("#table_total").jsGrid({
+                width: "100%",
+                height: "800px",
+
+                inserting: true,
+                editing: true,
+                sorting: true,
+                paging: false,
+
+                data: $list,
+
+                deleteConfirm: "Do you really want to delete this expense entry?",
+
+                fields: [
+                    {name: "Date", type: "text", width: 150, validate: "required"},
+                    {name: "User", type: "text", width: 50, validate: "required"},
+                    {name: "Category", type: "text", width: 200, validate: "required"},
+                    {name: "Description", type: "text", validate: "required"},
+                    {
+                        name: "Amount",
+                        type: "number",
+                        sorting: false,
+                        validate: "required",
+                        itemTemplate: function (value) {
+                            return "$" + value;
+                        }
+                    },
+                    {type: "control"}
+                ]
+            });
+        });
+    </script>
+
+    <script>
+        $(function () {
+            $("#totalExpensesPerUser").jsGrid({
+                width: "400px",
+
+                inserting: false,
+                editing: false,
+                sorting: true,
+                paging: false,
+
+                data: $tableSumUpPerUser,
+
+                fields: [
+                    {name: "User", type: "text", width: 50},
+                    {
+                        name: "Amount", type: "number", itemTemplate: function (value) {
+                        return "$" + value;
+                    }
+                    }
+                ]
+            });
+        });
+    </script>
+
+    <script>
+        $(function () {
+            $("#tableSettings").jsGrid({
+                width: "100%",
+
+                inserting: true,
+                editing: true,
+                sorting: true,
+                paging: false,
+                autoload: true,
+
+                fields: [
+                    {
+                        name: "description", headerTemplate: function () {
+                        return "Description"
+                    }, type: "text", width: 50
+                    },
+                    {
+                        name: "amount", type: "number", headerTemplate: function () {
+                        return "Amount"
+                    }, itemTemplate: function (value) {
+                        return "$" + value;
+                    }
+                    },
+                    {
+                        name: "user", type: "text", headerTemplate: function () {
+                        return "Payer"
+                    }, width: 50
+                    },
+                    {
+                        name: "payingTo", type: "text", headerTemplate: function () {
+                        return "Paying To"
+                    }, width: 50
+                    },
+                    {type: "control"}
+                ],
+
+                controller: {
+                    updateItem: function (item) {
+                        var d = $.Deferred();
+                        $.ajax({
+                            url: "updateEntry",
+                            type: "POST",
+                            data: item
+                        }).done(function (updatedItem) {
+                            d.resolve()
+                        });
+                        return d.promise();
+                    },
+
+                    loadData: function () {
+                        var d = $.Deferred();
+
+                        $.ajax({
+                            type: "POST",
+                            url: "getSettings",
+                            dataType: "json"
+                        }).done(function (response) {
+                            d.resolve(response);
+                        });
+
+                        return d.promise();
+                    }
+
+                }
+            });
+        })
+        ;
+    </script>
+
+    <script>
+        $(function () {
+            $("#totalAmountPerUser").jsGrid({
+                width: "50%",
+
+                inserting: false,
+                editing: false,
+                sorting: false,
+                paging: false,
+
+                data: $totalAmountPerUser,
+
+                fields: $columnList
+            });
+        });
+    </script>
+
+</head>
+
+<body>
+
+<h2>Sum up: </h2>
+<div id="sumUp">
+    <h3>Totals</h3>
+    <div id="totalAmountPerUser"></div>
+
+    <h3>Expenses report</h3>
+    <div id="totalExpensesPerUser"></div>
+</div>
+
+<h2>Expense Details</h2>
+<div id="table_total" width="50%"></div>
+
+<h2>Regular expenses</h2>
+<div id="tableSettings"></div>
+
+<div>
+    <a href="monthlyView?date=$previousMonth">Previous Month</a><a href="monthlyView?date=$nextMonth">Next Month</a>
+</div>
+
+    #parse("templates/footer.vm")
+</body>
+</html>

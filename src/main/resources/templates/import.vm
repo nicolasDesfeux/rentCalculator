@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Rent Calculator</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <script type="text/javascript" src="js/jquery-1.12.3.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/velocity.js"></script>
+</head>
+
+<body>
+<div class="importForm">
+    <form method="post" enctype="multipart/form-data" action="new">
+        File: <input type="file" name="file" size="40" id="test"/>
+        <input type="submit" value="send" name="import"/>
+    </form>
+</div>
+
+#parse("templates/footer.vm")
+</body>
+</html>
