@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Rent Calculator</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css"/>
+    <link type="text/css" rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css"/>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        .hide {
+            display: none;
+        }
+    </style>
+    <script
+            src="https://code.jquery.com/jquery-3.1.1.js"
+            integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="
+            crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
+
+    <script>
+        $(function () {
+            var icons = {
+                header: "ui-icon-circle-arrow-e",
+                activeHeader: "ui-icon-circle-arrow-s"
+            };
+            $("#accordion").accordion({
+                icons: icons
+            });
+            $("#toggle").button().on("click", function () {
+                if ($("#accordion").accordion("option", "icons")) {
+                    $("#accordion").accordion("option", "icons", null);
+                } else {
+                    $("#accordion").accordion("option", "icons", icons);
+                }
+            });
+        });
+    </script>
+
+    <script>
+        $(function () {
+            $("#usersTable").jsGrid({
+                width: "100%",
+
+                inserting: false,
+                editing: true,
+                sorting: false,
+                paging: true,
+                autoload: true,
+
+                controller: {
+                    loadData: function (filter) {
+                        return $.ajax({
+                            type: "POST",
+                            url: "/getUsers",
+                            dataType: "json"
+                        });
+                    },
+                    updateItem: $.noop,
+                    deleteItem: $.noop,
+                    insertItem: $.noop
+                },
+
+                fields: [
+                    {
+                        name: "_id",
+                        type: "text",
+                        width: 50,
+                        editing: false,
+                        css: "hide"
+                    },
+                    {
+                        name: "firstName", type: "text", width: 50
+                    },
+                    {
+                        name: "lastName", type: "text", width: 50
+                    },
+                    {
+                        type: "control"
+                    }
+                ],
+            });
+        });
+    </script>
+
+</head>
+
+<body>
+
+<h1>Settings</h1>
+<div id="accordion">
+    <h3>Users</h3>
+    <div id="usersTable"></div>
+    <h3>Default Recurring</h3>
+    <div id="totalAmountPerUser"></div>
+    <h3>Export and Import</h3>
+</div>
+
+    #parse("templates/footer.vm")
+</body>
+</html>

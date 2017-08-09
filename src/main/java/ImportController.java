@@ -52,7 +52,8 @@ public class ImportController {
 
                 String[] entry = s.split("\t");
                 if (!"Amount".equals(entry[4])) {
-                    Entry e = new Entry(entry[1], entry[3], entry[2], Double.parseDouble(entry[4]), DATE_FORMAT.parse(entry[0]));
+                    User user = HibernateUtil.findUserById(entry[1]);
+                    Entry e = new Entry(user, entry[3], entry[2], Double.parseDouble(entry[4]), DATE_FORMAT.parse(entry[0]), EntryType.ONETIME, entry[3]);
                     entryList.add(e);
                 }
             }

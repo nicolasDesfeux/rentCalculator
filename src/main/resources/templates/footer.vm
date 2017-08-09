@@ -1,11 +1,17 @@
+<br/>
 <footer>
-    <ul>
-        <li><a href="index">Index</a></li>
-        <li><a href="newEntry">newEntry</a></li>
-        <li><a href="monthlySummary">monthlySummary</a></li>
-        <li><a href="monthlyView">monthlyView</a></li>
-    </ul>
-
-    <p>Posted by: Nicolas Desfeux</p>
-    <p>Contact information: <a href="mailto:nicolas.desfeux@gmail.com">nicolas.desfeux@gmail.com</a>.</p>
+    <div>
+        <button onclick="window.location.href='monthlyView'">Monthly View</button>
+        <button onclick="window.location.href='summaryView'">Summary View</button>
+        <button onclick="window.location.href='settings'">Settings</button>
+    </div>
+    <br/>
+    <div style="border-radius: 25px;
+    border: 2px solid #73AD21;
+    padding: 5px;
+    width: 300px;
+    height: 100px; ">
+        <p>Posted by: Nicolas Desfeux</p>
+        <p>Contact information: <a href="mailto:nicolas.desfeux@gmail.com">nicolas.desfeux@gmail.com</a>.</p>
+    </div>
 </footer>
