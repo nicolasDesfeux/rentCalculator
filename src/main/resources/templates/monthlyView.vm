@@ -9,6 +9,7 @@
     <link type="text/css" rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css"/>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/general.css">
     <style>
         .hide {
             display: none;
@@ -20,8 +21,23 @@
             crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
-
     <script>
+        function updateDate(increment) {
+            $.ajax({
+                type: "POST",
+                url: "/updateDate/",
+                dataType: "json",
+                data: {
+                    increment: increment
+                },
+                success: function (data) {
+                    location.reload();
+                }
+            });
+
+        }
+        ;
+
         $(function () {
             var icons = {
                 header: "ui-icon-circle-arrow-e",
@@ -43,11 +59,10 @@
     <script>
 
         $(function () {
-            var currentTime = new Date()
-            var minDate = new Date(currentTime.getFullYear(), currentTime.getMonth(), +1); //one day next before month
-            var maxDate = new Date(currentTime.getFullYear(), currentTime.getMonth() + 2, +0); // one day before next month
-
-
+            var parts = '$currentDate'.split('-');
+            // new Date(year, month [, day [, hours[, minutes[, seconds[, ms]]]]])
+            var currentTime = new Date(parts[0], parts[1] - 1, parts[2]); // Note: months are 0-based
+            var d = new Date(currentTime.getFullYear(), currentTime.getMonth() + 1, 0);
             var MyDateField = function (config) {
                 jsGrid.Field.call(this, config);
             };
@@ -62,11 +77,17 @@
                 },
 
                 insertTemplate: function (value) {
-                    return this._insertPicker = $("<input>").datepicker({stepMonths: 0}).datepicker({defaultDate: new Date()});
+                    return this._insertPicker = $("<input>").datepicker().datepicker({
+                        minDate: currentTime,
+                        maxDate: d
+                    });
                 },
 
                 editTemplate: function (value) {
-                    return this._editPicker = $("<input>").datepicker({stepMonths: 0}).datepicker("setDate", new Date(value));
+                    return this._editPicker = $("<input>").datepicker().datepicker({
+                        minDate: currentTime,
+                        maxDate: d
+                    }).datepicker("setDate", new Date(value));
                 },
 
                 insertValue: function () {
@@ -88,14 +109,22 @@
                 editing: true,
                 sorting: true,
                 paging: true,
-                pageSize: 15,
+                pageSize: 10,
                 autoload: true,
 
                 deleteConfirm: "Do you really want to delete this expense entry?",
 
                 noDataContent: "No data for this month. ",
                 fields: [
-                    {name: "Date", type: "myDateField", width: 150, validate: "required"},
+                    {
+                        name: "_id", type: "text", width: 50, css: "hide"
+                    },
+                    {
+                        name: "date", type: "myDateField", width: 150, validate: "required",
+                        headerTemplate: function () {
+                            return "Date"
+                        },
+                    },
                     {
                         name: "user",
                         items:$userListSelect,
@@ -143,14 +172,14 @@
                     loadData: function (filter) {
                         return $.ajax({
                             type: "POST",
-                            url: "/getEntries",
+                            url: "/getEntries/",
                             dataType: "json"
                         });
                     },
                     updateItem: function (item) {
                         $.ajax({
                             type: "POST",
-                            url: "/updateItem",
+                            url: "/updateItem/",
                             data: item,
                             success: function (data) {
                                 $("#totalAmountPerUser").jsGrid("render");
@@ -162,7 +191,7 @@
                     deleteItem: function (item) {
                         $.ajax({
                             type: "POST",
-                            url: "/deleteItem",
+                            url: "/deleteItem/",
                             data: item,
                             success: function (data) {
                                 $("#totalAmountPerUser").jsGrid("render");
@@ -174,7 +203,7 @@
                     insertItem: function (item) {
                         $.ajax({
                             type: "POST",
-                            url: "/insertItem",
+                            url: "/insertItem/",
                             data: item,
                             success: function (data) {
                                 $("#totalAmountPerUser").jsGrid("render");
@@ -201,6 +230,7 @@
                 paging: false,
                 autoload: true,
 
+                noDataContent: "No data for this month. ",
                 fields: [
                     {name: "User", type: "text", width: 50},
                     {
@@ -214,7 +244,7 @@
                     loadData: function (filter) {
                         return $.ajax({
                             type: "POST",
-                            url: "/getExpensesPerUser",
+                            url: "/getExpensesPerUser/",
                             dataType: "json"
                         });
                     },
@@ -228,7 +258,9 @@
 
     <script>
 
+        var currentDate = '$currentDate'
         $(function () {
+
 
             $("#tableSettings").jsGrid({
                 width: "100%",
@@ -244,7 +276,13 @@
                         name: "_id", type: "text", width: 50, css: "hide"
                     },
                     {
-                        name: "date", type: "text", width: 50, css: "hide"
+                        name: "date", type: "text", width: 50, css: "hide",
+                        insertTemplate: function () {
+                            var $result =
+                            jsGrid.fields.text.prototype.insertTemplate.call(this); // original input
+                                $result.val(currentDate);
+                            return $result;
+                        }
                     },
                     {
                         name: "userId", type: "text", width: 50, css: "hide"
@@ -283,14 +321,14 @@
                     loadData: function (filter) {
                         return $.ajax({
                             type: "POST",
-                            url: "/getTableSettings",
+                            url: "/getTableSettings/",
                             dataType: "json"
                         });
                     },
                     updateItem: function (item) {
                         $.ajax({
                             type: "POST",
-                            url: "/updateRecurringEntry",
+                            url: "/updateRecurringEntry/",
                             data: item,
                             success: function (data) {
                                 $("#totalAmountPerUser").jsGrid("render");
@@ -299,8 +337,30 @@
                         });
                         return item;
                     },
-                    deleteItem: $.noop,
-                    insertItem: $.noop
+                    deleteItem: function (item) {
+                        $.ajax({
+                            type: "POST",
+                            url: "/deleteItem/",
+                            data: item,
+                            success: function (data) {
+                                $("#totalAmountPerUser").jsGrid("render");
+                                $("#totalExpensesPerUser").jsGrid("render");
+                            }
+                        });
+                        return item;
+                    },
+                    insertItem: function (item) {
+                        $.ajax({
+                            type: "POST",
+                            url: "/insertRecurringItem/",
+                            data: item,
+                            success: function (data) {
+                                $("#totalAmountPerUser").jsGrid("render");
+                                $("#totalExpensesPerUser").jsGrid("render");
+                            }
+                        });
+                        return item;
+                    }
                 }
             });
         })
@@ -322,7 +382,7 @@
                     loadData: function (filter) {
                         return $.ajax({
                             type: "POST",
-                            url: "/getTotalAmounts",
+                            url: "/getTotalAmounts/",
                             dataType: "json"
                         });
                     },
@@ -339,29 +399,30 @@
 </head>
 
 <body>
+    #parse("templates/menu.vm")
+<!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
+<div id="main">
 
-<h1>Rent Calculator</h1>
-<div id="accordion">
-    <h3>Totals for $currentMonth</h3>
-    <div id="totalAmountPerUser"></div>
+    <h1>Rent Calculator</h1>
+    <div id="accordion">
+        <h3>Totals for <strong>$currentMonth</strong></h3>
+        <div id="totalAmountPerUser"></div>
 
-    <h3>Expenses report</h3>
-    <div id="totalExpensesPerUser"></div>
+        <h3>Expenses report</h3>
+        <div id="totalExpensesPerUser"></div>
 
-    <h3>Expense Details</h3>
-    <div id="table_total" width="50%"></div>
+        <h3>Expense Details</h3>
+        <div id="table_total" width="50%"></div>
 
-    <h3>Regular expenses</h3>
-    <div id="tableSettings"></div>
+        <h3>Regular expenses</h3>
+        <div id="tableSettings"></div>
+    </div>
+
+    <div>
+        <br/>
+        <button onclick="updateDate(-1)"><<< Previous Month</button>
+        <button onclick="updateDate(1)">Next Month >>></button>
+    </div>
 </div>
-
-
-<div>
-    <br/>
-    <button onclick="window.location.href='monthlyView?date=$previousMonth'"><<< Previous Month</button>
-    <button onclick="window.location.href='monthlyView?date=$nextMonth'">Next Month >>></button>
-</div>
-
-    #parse("templates/footer.vm")
 </body>
 </html>

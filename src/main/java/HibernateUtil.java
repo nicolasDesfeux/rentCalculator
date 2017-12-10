@@ -44,6 +44,20 @@ public class HibernateUtil {
         //End
     }
 
+    public static void createOneAccount() {
+        //Test
+        EntityManager entityManager = getEntityManager();
+
+        Account o = new Account("test", "nicolas.desfeux@gmail.com", "test");
+        entityManager.getTransaction().begin();
+        entityManager.persist(o);
+        entityManager.getTransaction().commit();
+        // get a new EM to make sure data is actually retrieved from the store and not Hibernate's internal cache
+        entityManager.close();
+
+        //End
+    }
+
     public static void removeById(String id) {
         //Test
         EntityManager entityManager = getEntityManager();
@@ -116,5 +130,14 @@ public class HibernateUtil {
         for (Entry entry : entries) {
             persist(entry);
         }
+    }
+
+    public static Account getAccountByEmail(String username) {
+        //Test
+        EntityManager entityManager = getEntityManager();
+        Query query = entityManager.createNativeQuery("db.Account.find({\"email\" : \"" + username + "\"})", Account.class);
+        List resultList = query.getResultList();
+        entityManager.close();
+        return resultList.isEmpty() ? null : (Account) resultList.get(0);
     }
 }

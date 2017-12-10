@@ -9,6 +9,7 @@
     <link type="text/css" rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css"/>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/general.css">
     <style>
         .hide {
             display: none;
@@ -22,9 +23,25 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
 
     <script>
+        function updateDate(date) {
+            $.ajax({
+                type: "POST",
+                url: "/updateDate/",
+                dataType: "json",
+                data: {
+                    date: date
+                },
+                success: function (data) {
+                    window.location = "/monthlyView/";
+                }
+            });
+
+        }
+        ;
+
         $(function () {
             $("#totalAmountPerUser").jsGrid({
-                width: "100%",
+                width: "95%",
 
                 inserting: false,
                 editing: false,
@@ -37,7 +54,7 @@
                     loadData: function (filter) {
                         return $.ajax({
                             type: "POST",
-                            url: "/getSummary",
+                            url: "/getSummary/",
                             dataType: "json"
                         });
                     },
@@ -54,12 +71,12 @@
 </head>
 
 <body>
-
-<h2>Summary</h2>
-<div id="sumUp">
-    <div id="totalAmountPerUser"></div>
+    #parse("templates/menu.vm")
+<div id="main">
+    <h2>Summary</h2>
+    <div id="sumUp">
+        <div id="totalAmountPerUser"></div>
+    </div>
 </div>
-
-    #parse("templates/footer.vm")
 </body>
 </html>

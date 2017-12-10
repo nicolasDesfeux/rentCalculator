@@ -7,7 +7,6 @@ import spark.Response;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class EntryController {
 
@@ -16,11 +15,12 @@ public class EntryController {
     public static Object insertEntry(Request request, Response response) throws ParseException {
         User user = HibernateUtil.findUserById(request.queryParams("user"));
         Entry entry = new Entry(user,
-                request.queryParams("Category"),
-                request.queryParams("Description"),
-                Double.valueOf(request.queryParams("Amount")),
-                DATE_FORMAT.parse(request.queryParams("date")), EntryType.ONETIME,
-                request.queryParams("Description"));
+                request.queryParams("category"),
+                request.queryParams("description"),
+                Double.valueOf(request.queryParams("amount")),
+                DATE_FORMAT.parse(request.queryParams("date")),
+                request.pathInfo().equals("/insertRecurringItem/") ? EntryType.RECURRING : EntryType.ONETIME,
+                request.queryParams("description"));
         HibernateUtil.persist(entry);
         return entry;
     }
@@ -31,8 +31,7 @@ public class EntryController {
         entry.setCategory(request.queryParams("category"));
         entry.setDescription(request.queryParams("description"));
         entry.setAmount(Double.valueOf(request.queryParams("amount")));
-        entry.setDate(new Date(0));
-        entry.setEntryType(request.pathInfo().equals("/updateRecurringEntry") ? EntryType.RECURRING : EntryType.ONETIME);
+        entry.setEntryType(request.pathInfo().equals("/updateRecurringEntry/") ? EntryType.RECURRING : EntryType.ONETIME);
         entry.setPayingTo(request.queryParams("payingTo") == null ? request.queryParams("description") : request.queryParams("payingTo"));
         HibernateUtil.persist(entry);
         return entry;

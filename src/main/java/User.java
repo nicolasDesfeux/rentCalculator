@@ -70,6 +70,6 @@ public class User extends AbstractEntity {
     }
 
     public String getFulName() {
-        return getFirstName() + (getLastName() != null ? " " + getLastName() : "");
+        return (getFirstName() != null ? getFirstName() : "") + (getLastName() != null ? " " + getLastName() : "");
     }
 }

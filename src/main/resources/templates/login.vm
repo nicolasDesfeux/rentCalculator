@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Rent Calculator</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+    <script type="text/javascript">
+        function myFunction() {
+            $('form').animate({height: "toggle", opacity: "toggle"}, "slow");
+        }
+        ;
+    </script>
+</head>
+<body>
+
+<div class="login">
+    <h1>Login</h1>
+    <form method="post">
+        #if($authenticationFailed)
+            <div class="ui-state-error ui-corner-all" style="padding: 0 .7em;">
+                <p><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+                    <strong>Alert:</strong> Authentification failed</p>
+            </div>
+        #elseif($loggedOut)
+            <div class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">
+                <p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>
+                    <strong>User logged out</strong></p>
+            </div>
+        #end
+        <input type="text" name="username" placeholder="Username" required="required"/>
+        <input type="password" name="password" placeholder="Password" required="required"/>
+        <button type="submit" class="btn btn-primary btn-block btn-large">Let me in.</button>
+    </form>
+</div>
+</body>
+</html>

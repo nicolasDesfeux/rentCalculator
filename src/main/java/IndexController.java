@@ -16,15 +16,78 @@ import java.util.*;
 public class IndexController {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    private static final SimpleDateFormat OTHER_FORMAT = new SimpleDateFormat("yyyyMMdd");
     private static final SimpleDateFormat DISPLAY_MONTH_FORMAT = new SimpleDateFormat("MMMM yyyy");
     private static Date val;
 
-    public static ModelAndView serverSettingsViewPage(Request re, Response res) throws ParseException, UnknownHostException {
+    public static ModelAndView serverMonthlyViewPage(Request re, Response res) throws ParseException, UnknownHostException {
+
+        //LoginController.ensureUserIsLoggedIn(re, res);
+
+        //Set up the date on the controller.
+        if (val == null || val.equals(new Date(0))) {
+            initializeVal();
+            //Date set up complete.
+        }
+
+        //Model to fill up.
         HashMap<String, Object> model = new HashMap<>();
+
+        // BUild the column list fo the javascript table.
+        String columnList = "[";
+        String userListSelect = "[{},";
+        Collection<User> users = HibernateUtil.getAllUsers();
+        for (User user : users) {
+            columnList += "{name: \"" + (user != null ? user.getFulName() : "Other") + "\", type: \"number\", itemTemplate: function(value) {\n" +
+                    "                        return \"$\" + value;\n" +
+                    "                    }},";
+            userListSelect += "{\"Name\":\"" + (user != null ? user.getFulName() : "Other") + "\", \"Id\":\"" + user.getKey() + "\"},";
+        }
+        columnList += "{name: \"" + "Utilities" + "\", type: \"number\", itemTemplate: function(value) {\n" +
+                "                        return \"$\" + value;\n" +
+                "                    }},";
+        columnList += "{name: \"" + "Total" + "\", type: \"number\", itemTemplate: function(value) {\n" +
+                "                        return \"$\" + value;\n" +
+                "                    }},";
+        columnList = columnList.substring(0, columnList.length() - 1) + "]";
+        model.put("columnList", columnList);
+        userListSelect = userListSelect.substring(0, userListSelect.length() - 1) + "]";
+        model.put("userListSelect", userListSelect);
+        model.put("currentMonth", DISPLAY_MONTH_FORMAT.format(val));
+        model.put("currentDate", DATE_FORMAT.format(val));
+
+
+        return new ModelAndView(model, "templates/monthlyView.vm");
+    }
+
+    private static void initializeVal() {
+        val = new Date();
+        val = DateUtils.setDays(val, 1);
+        val = DateUtils.setHours(val, 0);
+        val = DateUtils.setMinutes(val, 0);
+        val = DateUtils.setSeconds(val, 0);
+        val = DateUtils.setMilliseconds(val, 0);
+    }
+
+
+    public static ModelAndView serverSettingsViewPage(Request re, Response res) throws ParseException, UnknownHostException {
+        //LoginController.ensureUserIsLoggedIn(re, res);
+        HashMap<String, Object> model = new HashMap<>();
+        val = new Date(0);
+        String userListSelect = "[{},";
+        Collection<User> users = HibernateUtil.getAllUsers();
+        for (User user : users) {
+            userListSelect += "{\"Name\":\"" + (user != null ? user.getFulName() : "Other") + "\", \"Id\":\"" + user.getKey() + "\"},";
+        }
+        userListSelect = userListSelect.substring(0, userListSelect.length() - 1) + "]";
+        model.put("userListSelect", userListSelect);
+        model.put("currentDate", DATE_FORMAT.format(val));
+
         return new ModelAndView(model, "templates/settingsView.vm");
     }
 
     public static ModelAndView serverSummaryViewPage(Request re, Response res) throws ParseException, UnknownHostException {
+        //LoginController.ensureUserIsLoggedIn(re, res);
         //Model to fill up.
         HashMap<String, Object> model = new HashMap<>();
         String columnList = "[";
@@ -49,9 +112,21 @@ public class IndexController {
 
     public static String getSummaryPerUser(Request re, Response res) throws ParseException {
         Date oldest = HibernateUtil.getOldestEntry(EntryType.ONETIME).getDate();
+        oldest = DateUtils.setDays(oldest, 1);
+        oldest = DateUtils.setHours(oldest, 0);
+        oldest = DateUtils.setMinutes(oldest, 0);
+        oldest = DateUtils.setSeconds(oldest, 0);
+        oldest = DateUtils.setMilliseconds(oldest, 0);
 
         String totalAmountPerUser = "[";
         Date date = new Date();
+        date = DateUtils.setDays(date, 1);
+        date = DateUtils.setHours(date, 0);
+        date = DateUtils.setMinutes(date, 0);
+        date = DateUtils.setSeconds(date, 0);
+        date = DateUtils.setMilliseconds(date, 0);
+
+
         while (date.after(oldest)) {
             totalAmountPerUser += getTotalAmountforMonth(date);
             date = DateUtils.addMonths(date, -1);
@@ -64,64 +139,14 @@ public class IndexController {
         Collection<User> allUsers = HibernateUtil.getAllUsers();
         String users = "[";
         for (User user : allUsers) {
-            users += "{\"_id\":\""+user.getKey()+"\",\"firstName\":\"" + user.getFirstName() + "\",\"lastName\":\"" + user.getLastName() + "\"},";
+            users += "{\"_id\":\"" + user.getKey() + "\",\"firstName\":\"" + user.getFirstName() + "\",\"lastName\":\"" + user.getLastName() + "\"},";
         }
-        return users.substring(0, users.length() - 1)+"]";
+        return users.substring(0, users.length() - 1) + "]";
     }
 
 
-    public static ModelAndView serverMonthlyViewPage(Request re, Response res) throws ParseException, UnknownHostException {
-
-        //Set up the date on the controller.
-        Date date = new Date();
-        String source = re.queryParams("date");
-        if (source != null) {
-            date = DATE_FORMAT.parse(source);
-        }
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        val = cal.getTime();
-        //Date set up complete.
-
-        //Model to fill up.
-        HashMap<String, Object> model = new HashMap<>();
-
-        String columnList = "[";
-        String userListSelect = "[{},";
-        Collection<User> users = HibernateUtil.getAllUsers();
-        for (User user : users) {
-            columnList += "{name: \"" + (user != null ? user.getFulName() : "Other") + "\", type: \"number\", itemTemplate: function(value) {\n" +
-                    "                        return \"$\" + value;\n" +
-                    "                    }},";
-            userListSelect += "{\"Name\":\"" + user.getFulName() + "\", \"Id\":\"" + user.getKey() + "\"},";
-        }
-        columnList += "{name: \"" + "Utilities" + "\", type: \"number\", itemTemplate: function(value) {\n" +
-                "                        return \"$\" + value;\n" +
-                "                    }},";
-        columnList += "{name: \"" + "Total" + "\", type: \"number\", itemTemplate: function(value) {\n" +
-                "                        return \"$\" + value;\n" +
-                "                    }},";
-        columnList = columnList.substring(0, columnList.length() - 1) + "]";
-        model.put("columnList", columnList);
-        userListSelect = userListSelect.substring(0, userListSelect.length() - 1) + "]";
-        model.put("userListSelect", userListSelect);
-
-        model.put("date", DATE_FORMAT.format(DATE_FORMAT.parse(cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-01")));
-        model.put("currentMonth", DISPLAY_MONTH_FORMAT.format(cal.getTime()));
-        model.put("previousMonth", DATE_FORMAT.format(DATE_FORMAT.parse(cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH)) + "-01")));
-        model.put("nextMonth", DATE_FORMAT.format(DATE_FORMAT.parse(cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 2) + "-01")));
-
-
-        return new ModelAndView(model, "templates/monthlyView.vm");
-    }
-
-    private static Map<User, BigDecimal> getTotalsPerUser(int indexMonth, int indexYear) throws ParseException {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.MONTH, indexMonth);
-        cal.set(Calendar.YEAR, indexYear);
-        cal.set(Calendar.DAY_OF_MONTH, 1);
-        Collection<Entry> list = HibernateUtil.getEntriesForMonth(cal.getTime(), EntryType.ONETIME);
+    private static Map<User, BigDecimal> getTotalsPerUser(Date date) throws ParseException {
+        Collection<Entry> list = HibernateUtil.getEntriesForMonth(date, EntryType.ONETIME);
 
         Map<User, BigDecimal> totalEntriesPerUser = new HashMap<>();
 
@@ -144,7 +169,7 @@ public class IndexController {
             entryTable[0] += "]";
         }
 
-        Collection<Entry> settings = loadSettings(DATE_FORMAT.parse(indexYear + "-" + (indexMonth + 1) + "-01"));
+        Collection<Entry> settings = loadSettings(date);
 
         Map<User, BigDecimal> utilitiesPerUser = new HashMap<>();
         BigDecimal rent = BigDecimal.ZERO;
@@ -184,7 +209,7 @@ public class IndexController {
         if (!list.isEmpty()) {
             String entryTable = "[";
             for (Entry aList : list) {
-                entryTable += "{\"Date\":\"" + aList.getDate().toString() + "\",\"user\":";
+                entryTable += "{\"date\":\"" + aList.getDate().toString() + "\",\"user\":";
                 entryTable += "\"" + aList.getUser().getKey() + "\",\"category\":\"";
                 entryTable += aList.getCategory() + "\",\"description\":\"";
                 entryTable += aList.getDescription() + "\",\"_id\":\"";
@@ -200,8 +225,23 @@ public class IndexController {
 
     private static Collection<Entry> loadSettings(Date parse) {
         Collection<Entry> entriesForMonth = HibernateUtil.getEntriesForMonth(parse, EntryType.RECURRING);
-        if (entriesForMonth.size() == 0) {
+
+        if (entriesForMonth.isEmpty()) {
+            //Create settings from defaults.
             entriesForMonth = HibernateUtil.getEntriesForMonth(new Date(0), EntryType.RECURRING);
+            entriesForMonth.forEach(entry -> {
+                Entry newEntry = new Entry(
+                        entry.getUser(),
+                        entry.getCategory(),
+                        entry.getDescription(),
+                        entry.getAmount().doubleValue(),
+                        parse,
+                        entry.getEntryType(),
+                        entry.getPayingTo()
+                );
+                HibernateUtil.persist(newEntry);
+            });
+            entriesForMonth = HibernateUtil.getEntriesForMonth(parse, EntryType.RECURRING);
         }
 
         return entriesForMonth;
@@ -236,10 +276,8 @@ public class IndexController {
     }
 
     private static String getTotalAmountforMonth(Date val) throws ParseException {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(val);
-        Map<User, BigDecimal> mapTotals = getTotalsPerUser(cal.get(Calendar.MONTH), cal.get(Calendar.YEAR));
-        String totalAmountPerUser = "{\"Date\" : \"<a href='/monthlyView?date="+DATE_FORMAT.format(cal.getTime())+"'>" + DISPLAY_MONTH_FORMAT.format(cal.getTime()) + "</a>\",";
+        Map<User, BigDecimal> mapTotals = getTotalsPerUser(val);
+        String totalAmountPerUser = "{\"Date\" : \"<a onClick='updateDate(" + OTHER_FORMAT.format(val) + ")' href='#'>" + DISPLAY_MONTH_FORMAT.format(val) + "</a>\",";
         for (User user : mapTotals.keySet()) {
             totalAmountPerUser += "\"" + (user != null ? user.getFulName() : "Other") + "\":\"" + mapTotals.get(user) + "\",";
         }
@@ -275,4 +313,18 @@ public class IndexController {
     }
 
 
+    public static Object updateDate(Request request, Response response) throws ParseException {
+        //Set up the date on the controller.
+        Date oldVal = val;
+        if (request.queryParams("increment") != null) {
+            int increment = Integer.parseInt(request.queryParams("increment"));
+            val = DateUtils.addMonths(val, increment);
+        } else if (request.queryParams("date") != null) {
+            val = OTHER_FORMAT.parse(request.queryParams("date"));
+        } else {
+            initializeVal();
+        }
+
+        return true;
+    }
 }
