@@ -13,12 +13,13 @@ public class RentCalculator {
         before("*", Filters.addTrailingSlashes);
         before("*", Filters.handleLocaleChange);
 
+        get("/expenses/:user/", "text/html",(request, response) -> "Hello");
         get("/monthlyView/", IndexController::serverMonthlyViewPage, new VelocityTemplateEngine());
         get("/summaryView/", IndexController::serverSummaryViewPage, new VelocityTemplateEngine());
         get("/settings/", IndexController::serverSettingsViewPage, new VelocityTemplateEngine());
 
         get("/import/new/", ImportController::serveHomePage, new VelocityTemplateEngine());
-        post("/import/new/", ImportController::serveHomePage, new VelocityTemplateEngine());
+        post("/import/new/", ImportController::serveHomePage, new VelocityTemplateEngine()) ;
 
         post("/updateItem/", EntryController::updateEntry);
         post("/updateRecurringEntry/", EntryController::updateEntry);
