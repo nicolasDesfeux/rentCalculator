@@ -1,8 +1,6 @@
-/**
+package spark; /**
  * Created by Nicolas on 2017-08-09.
  */
-
-import spark.Request;
 
 public class RequestUtil {
 

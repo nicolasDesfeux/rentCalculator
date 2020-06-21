@@ -1,5 +1,6 @@
 import dao.EntryDao;
 import dao.UserDao;
+import spark.Filters;
 import spark.template.velocity.VelocityTemplateEngine;
 
 import javax.persistence.EntityManagerFactory;

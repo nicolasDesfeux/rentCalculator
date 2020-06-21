@@ -1,6 +1,4 @@
-import spark.Filter;
-import spark.Request;
-import spark.Response;
+package spark;
 
 /**
  * Created by Nicolas on 2017-08-09.
