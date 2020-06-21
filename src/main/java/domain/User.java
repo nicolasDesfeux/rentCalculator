@@ -1,15 +1,26 @@
+package domain;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Nicolas on 2017-02-19.
  */
 @Entity
-public class User extends AbstractEntity {
+@Table(name = "USERS")
+public class User extends DomainObject {
+
     private String lastName;
     private String firstName;
-    @Id
-    private String userId;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    Set<Entry> entries = new HashSet<>();
 
     public User() {
     }
@@ -30,18 +41,9 @@ public class User extends AbstractEntity {
         this.firstName = firstName;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public User(String lastName, String firstName, String userId) {
+    public User(String lastName, String firstName) {
         this.lastName = lastName;
         this.firstName = firstName;
-        this.userId = userId;
     }
 
     @Override
@@ -53,23 +55,29 @@ public class User extends AbstractEntity {
 
         if (lastName != null ? !lastName.equals(user.lastName) : user.lastName != null) return false;
         if (firstName != null ? !firstName.equals(user.firstName) : user.firstName != null) return false;
-        return userId != null ? userId.equals(user.userId) : user.userId == null;
+        return id != null ? id.equals(user.id) : user.id == null;
     }
 
     @Override
     public int hashCode() {
         int result = lastName != null ? lastName.hashCode() : 0;
         result = 31 * result + (firstName != null ? firstName.hashCode() : 0);
-        result = 31 * result + (userId != null ? userId.hashCode() : 0);
+        result = 31 * result + (id != null ? id.hashCode() : 0);
         return result;
     }
 
-    @Override
-    public String getKey() {
-        return userId;
+    @JsonIgnore
+    public String getFullName() {
+        return (getFirstName() != null ? getFirstName() : "") + (getLastName() != null ? " " + getLastName() : "");
     }
 
-    public String getFulName() {
-        return (getFirstName() != null ? getFirstName() : "") + (getLastName() != null ? " " + getLastName() : "");
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", lastName='" + lastName + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", entries=" + entries +
+                '}';
     }
 }

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Rent Calculator</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css"/>
+    <link type="text/css" rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css"/>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/general.css">
+    <style>
+        .hide {
+            display: none;
+        }
+    </style>
+    <script
+            src="https://code.jquery.com/jquery-3.1.1.js"
+            integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="
+            crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
+    <script>
+
+        $(function () {
+            var icons = {
+                header: "ui-icon-circle-arrow-e",
+                activeHeader: "ui-icon-circle-arrow-s"
+            };
+            $("#accordion").accordion({
+                icons: icons
+            });
+            $("#toggle").button().on("click", function () {
+                if ($("#accordion").accordion("option", "icons")) {
+                    $("#accordion").accordion("option", "icons", null);
+                } else {
+                    $("#accordion").accordion("option", "icons", icons);
+                }
+            });
+        });
+    </script>
+
+    <script>
+        $(function () {
+            $("#users").jsGrid({
+                width: "90%",
+
+                inserting: false,
+                editing: false,
+                sorting: false,
+                paging: false,
+                autoload: true,
+
+                controller: {
+                    loadData: function (filter) {
+                        return $.ajax({
+                            type: "GET",
+                            url: "/users/",
+                            dataType: "json"
+                        });
+                    },
+                    updateItem: $.noop,
+                    deleteItem: $.noop,
+                    insertItem: $.noop
+                },
+
+                fields: [
+                                            {
+                                                name: "id",
+                                                type: "text",
+                                                title: "Identifier",
+                                                width: 50,
+                                                visible: false
+                                            },
+                                            {
+                                                name: "firstName",
+                                                type: "text",
+                                                title: "First name"
+                                            },
+                                            {
+                                                name: "lastName",
+                                                type: "text",
+                                                title: "Last name"
+                                            }
+                                            ]
+            });
+        });
+    </script>
+
+    <script>
+            $(function () {
+                $("#entries").jsGrid({
+                    width: "90%",
+
+                    inserting: false,
+                    editing: false,
+                    sorting: false,
+                    paging: true,
+                    autoload: true,
+
+                    controller: {
+                        loadData: function (filter) {
+                            return $.ajax({
+                                type: "GET",
+                                url: "/entries/",
+                                dataType: "json"
+                            });
+                        },
+                        updateItem: $.noop,
+                        deleteItem: $.noop,
+                        insertItem: $.noop
+                    },
+
+                    fields: [
+                                                {
+                                                    name: "id",
+                                                    title: "Id",
+                                                    type: "text",
+                                                    width: 50,
+                                                    visible: false
+                                                },
+                                                {
+                                                    name: "user",
+                                                    title: "User",
+                                                    type: "text",
+                                                    itemTemplate: function(value) {
+                                                        return value.firstName + ' ' + value.lastName;
+                                                    }
+                                                },
+                                                {
+                                                    name: "date",
+                                                    title: "Date",
+                                                    type: "date"
+                                                },
+                                                {
+                                                    name: "category",
+                                                    title: "Category",
+                                                    type: "text"
+                                                },
+                                             {
+                                                 name: "description",
+                                                 title: "Description",
+                                                 type: "text"
+                                             },
+                                              {
+                                                  name: "payingTo",
+                                                  title:"Paying to",
+                                                  type: "text"
+                                              },
+                                               {
+                                                   name: "amount",
+                                                   title:"Amount",
+                                                   type: "number"
+                                               }
+                                                ]
+                });
+            });
+        </script>
+
+</head>
+
+<body>
+    #parse("templates/menu.vm")
+<!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
+<div id="main">
+
+    <h1>Rent Calculator</h1>
+    <div id="accordion">
+        <h3>Users</h3>
+        <div id="users"></div>
+
+        <h3>Entries</h3>
+        <div id="entries"></div>
+    </div>
+</div>
+</body>
+</html>

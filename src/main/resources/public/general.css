@@ -19,7 +19,7 @@ body {
 }
 
 /* The navigation menu links */
-.sidenav a {
+.menuEntries a {
     padding: 8px 8px 8px 32px;
     text-decoration: none;
     font-size: 25px;
@@ -27,9 +27,19 @@ body {
     display: block;
     transition: 0.3s;
 }
+.menuEntries{
+    height: 60%;
+}
+.contact{
+    padding: 8px 8px 8px 32px;
+}
+.contact p, .contact a {
+    font-size: 14px;
+    color: #818181;
+}
 
 /* When you mouse over the navigation links, change their color */
-.sidenav a:hover, .offcanvas a:focus {
+.menuEntries a:hover, .offcanvas a:focus {
     color: #f1f1f1;
 }
 

@@ -1,12 +1,18 @@
+<div id="main">
+<h1><span onclick="openNav()" id="menuClicker"><img src="https://img.icons8.com/office/30/000000/menu.png"/></span> Rent Calculator</h1>
+<!-- Use any element to open the sidenav -->
+
 <div id="mySidenav" class="sidenav">
+<div class="menuEntries">
     <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
     <a href='/monthlyView/'>Monthly View</a><br/>
     <a href='/summaryView/'>Summary View</a><br/>
     <a href='/settings/'>Settings</a><br/>
-    <div>
+    </div>
+    <div class="contact">
         <p>Posted by: Nicolas Desfeux</p>
         <p>Contact information: <a href="mailto:nicolas.desfeux@gmail.com">nicolas.desfeux@gmail.com</a>.</p>
-        <p>Last update: 2017-12-09</p>
+        <p>Last update: 2020-10-06</p>
     </div>
 </div>
 <script>
@@ -14,13 +20,13 @@
     function openNav() {
         document.getElementById("mySidenav").style.width = "250px";
         document.getElementById("main").style.marginLeft = "250px";
+        document.getElementById("menuClicker").style.display = "none";
     }
 
     /* Set the width of the side navigation to 0 and the left margin of the page content to 0 */
     function closeNav() {
         document.getElementById("mySidenav").style.width = "0";
         document.getElementById("main").style.marginLeft = "0";
+        document.getElementById("menuClicker").style.display = "initial";
     }
 </script>
-<!-- Use any element to open the sidenav -->
-<span onclick="openNav()">Menu</span>

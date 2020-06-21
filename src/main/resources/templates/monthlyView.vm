@@ -20,7 +20,7 @@
             integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="
             crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
     <script>
         function updateDate(increment) {
             $.ajax({
@@ -35,8 +35,7 @@
                 }
             });
 
-        }
-        ;
+        };
 
         $(function () {
             var icons = {
@@ -59,57 +58,16 @@
     <script>
 
         $(function () {
-            var parts = '$currentDate'.split('-');
-            // new Date(year, month [, day [, hours[, minutes[, seconds[, ms]]]]])
-            var currentTime = new Date(parts[0], parts[1] - 1, parts[2]); // Note: months are 0-based
-            var d = new Date(currentTime.getFullYear(), currentTime.getMonth() + 1, 0);
-            var MyDateField = function (config) {
-                jsGrid.Field.call(this, config);
-            };
-
-            MyDateField.prototype = new jsGrid.Field({
-                sorter: function (date1, date2) {
-                    return new Date(date1) - new Date(date2);
-                },
-
-                itemTemplate: function (value) {
-                    return new Date(value).toDateString();
-                },
-
-                insertTemplate: function (value) {
-                    return this._insertPicker = $("<input>").datepicker().datepicker({
-                        minDate: currentTime,
-                        maxDate: d
-                    });
-                },
-
-                editTemplate: function (value) {
-                    return this._editPicker = $("<input>").datepicker().datepicker({
-                        minDate: currentTime,
-                        maxDate: d
-                    }).datepicker("setDate", new Date(value));
-                },
-
-                insertValue: function () {
-                    return this._insertPicker.datepicker("getDate").toISOString();
-                },
-
-                editValue: function () {
-                    return this._editPicker.datepicker("getDate").toISOString();
-                }
-            });
-
-            jsGrid.fields.myDateField = MyDateField;
 
             $("#table_total").jsGrid({
                 width: "90%",
                 height: "auto",
 
-                inserting: true,
-                editing: true,
+                inserting: false,
+                editing: false,
                 sorting: true,
                 paging: true,
-                pageSize: 10,
+                pageSize: 20,
                 autoload: true,
 
                 deleteConfirm: "Do you really want to delete this expense entry?",
@@ -117,312 +75,137 @@
                 noDataContent: "No data for this month. ",
                 fields: [
                     {
-                        name: "_id", type: "text", width: 50, css: "hide"
+                        name: "id",
+                        type: "text",
+                        width: 50,
+                        visible: false
                     },
                     {
-                        name: "date", type: "myDateField", width: 150, validate: "required",
-                        headerTemplate: function () {
-                            return "Date"
-                        },
+                        name: "date",
+                        type: "date",
+                        width: 150,
+                        title: "Date"
                     },
                     {
                         name: "user",
-                        items:$userListSelect,
-                        valueField: "Id",
-                        textField: "Name",
-                        type: "select",
-                        headerTemplate: function () {
-                            return "User"
-                        },
-                        validate: "required"
+                        title: "User",
+                        type: "text",
+                        itemTemplate: function(value) {
+                            return value.firstName + ' ' + value.lastName;
+                        }
                     },
                     {
                         name: "category",
+                        title: "Category",
                         type: "text",
                         width: 200,
-                        validate: "required",
-                        headerTemplate: function () {
-                            return "Category"
-                        }
+                        validate: "required"
+
                     },
                     {
                         name: "description",
-                        type: "text",
-                        validate: "required",
-                        headerTemplate: function () {
-                            return "Description"
-                        }
+                        title: "Description",
+                        type: "text"
                     },
                     {
                         name: "amount",
+                        title: "Amount",
                         type: "number",
                         sorting: false,
-                        validate: "required",
                         itemTemplate: function (value) {
                             return "$" + value;
-                        },
-                        headerTemplate: function () {
-                            return "Amount"
                         }
-                    },
-                    {type: "control"}
-                ],
-
-                controller: {
-                    loadData: function (filter) {
-                        return $.ajax({
-                            type: "POST",
-                            url: "/getEntries/",
-                            dataType: "json"
-                        });
-                    },
-                    updateItem: function (item) {
-                        $.ajax({
-                            type: "POST",
-                            url: "/updateItem/",
-                            data: item,
-                            success: function (data) {
-                                $("#totalAmountPerUser").jsGrid("render");
-                                $("#totalExpensesPerUser").jsGrid("render");
-                            }
-                        });
-                        return item;
-                    },
-                    deleteItem: function (item) {
-                        $.ajax({
-                            type: "POST",
-                            url: "/deleteItem/",
-                            data: item,
-                            success: function (data) {
-                                $("#totalAmountPerUser").jsGrid("render");
-                                $("#totalExpensesPerUser").jsGrid("render");
-                            }
-                        });
-                        return item;
-                    },
-                    insertItem: function (item) {
-                        $.ajax({
-                            type: "POST",
-                            url: "/insertItem/",
-                            data: item,
-                            success: function (data) {
-                                $("#totalAmountPerUser").jsGrid("render");
-                                $("#totalExpensesPerUser").jsGrid("render");
-                            }
-                        });
-                        return item;
-                    }
-                },
-
-
-            });
-        });
-    </script>
-
-    <script>
-        $(function () {
-            $("#totalExpensesPerUser").jsGrid({
-                width: "400px",
-
-                inserting: false,
-                editing: false,
-                sorting: true,
-                paging: false,
-                autoload: true,
-
-                noDataContent: "No data for this month. ",
-                fields: [
-                    {name: "User", type: "text", width: 50},
-                    {
-                        name: "Amount", type: "number", itemTemplate: function (value) {
-                        return "$" + value;
-                    }
                     }
                 ],
 
                 controller: {
                     loadData: function (filter) {
                         return $.ajax({
-                            type: "POST",
-                            url: "/getExpensesPerUser/",
+                            type: "GET",
+                            url: "/currentMonthEntry/",
                             dataType: "json"
                         });
-                    },
-                    updateItem: $.noop,
-                    deleteItem: $.noop,
-                    insertItem: $.noop
-                },
-            });
-        });
-    </script>
-
-    <script>
-
-        var currentDate = '$currentDate'
-        $(function () {
-
-
-            $("#tableSettings").jsGrid({
-                width: "100%",
-
-                inserting: true,
-                editing: true,
-                sorting: true,
-                paging: false,
-                autoload: true,
-
-                fields: [
-                    {
-                        name: "_id", type: "text", width: 50, css: "hide"
-                    },
-                    {
-                        name: "date", type: "text", width: 50, css: "hide",
-                        insertTemplate: function () {
-                            var $result =
-                            jsGrid.fields.text.prototype.insertTemplate.call(this); // original input
-                                $result.val(currentDate);
-                            return $result;
-                        }
-                    },
-                    {
-                        name: "userId", type: "text", width: 50, css: "hide"
-                    },
-                    {
-                        name: "description", headerTemplate: function () {
-                        return "Description"
-                    }, type: "text", width: 50
-                    },
-                    {
-                        name: "amount", type: "number", headerTemplate: function () {
-                        return "Amount"
-                    }, itemTemplate: function (value) {
-                        return "$" + value;
-                    }
-                    },
-                    {
-                        name: "user",
-                        items:$userListSelect,
-                        valueField: "Id",
-                        textField: "Name",
-                        type: "select",
-                        headerTemplate: function () {
-                            return "Payer"
-                        },
-                        width: 50
-                    },
-                    {
-                        name: "payingTo", type: "text", headerTemplate: function () {
-                        return "Paying To"
-                    }, width: 50
-                    },
-                    {type: "control"},
-                ],
-                controller: {
-                    loadData: function (filter) {
-                        return $.ajax({
-                            type: "POST",
-                            url: "/getTableSettings/",
-                            dataType: "json"
-                        });
-                    },
-                    updateItem: function (item) {
-                        $.ajax({
-                            type: "POST",
-                            url: "/updateRecurringEntry/",
-                            data: item,
-                            success: function (data) {
-                                $("#totalAmountPerUser").jsGrid("render");
-                                $("#totalExpensesPerUser").jsGrid("render");
-                            }
-                        });
-                        return item;
-                    },
-                    deleteItem: function (item) {
-                        $.ajax({
-                            type: "POST",
-                            url: "/deleteItem/",
-                            data: item,
-                            success: function (data) {
-                                $("#totalAmountPerUser").jsGrid("render");
-                                $("#totalExpensesPerUser").jsGrid("render");
-                            }
-                        });
-                        return item;
-                    },
-                    insertItem: function (item) {
-                        $.ajax({
-                            type: "POST",
-                            url: "/insertRecurringItem/",
-                            data: item,
-                            success: function (data) {
-                                $("#totalAmountPerUser").jsGrid("render");
-                                $("#totalExpensesPerUser").jsGrid("render");
-                            }
-                        });
-                        return item;
                     }
                 }
             });
-        })
-        ;
-    </script>
-
-    <script>
-        $(function () {
-            $("#totalAmountPerUser").jsGrid({
-                width: "50%",
-
-                inserting: false,
-                editing: false,
-                sorting: false,
-                paging: false,
-                autoload: true,
-
-                controller: {
-                    loadData: function (filter) {
-                        return $.ajax({
-                            type: "POST",
-                            url: "/getTotalAmounts/",
-                            dataType: "json"
-                        });
-                    },
-                    updateItem: $.noop,
-                    deleteItem: $.noop,
-                    insertItem: $.noop
-                },
-
-                fields: $columnList
-            });
         });
     </script>
 
+    <script>
+            $(function () {
+                $("#totalExpensesPerUser").jsGrid({
+                    width: "400px",
+
+                    inserting: false,
+                    editing: false,
+                    sorting: true,
+                    paging: false,
+                    autoload: true,
+
+                    noDataContent: "No data for this month. ",
+                    fields: $listFields,
+
+                    controller: {
+                        loadData: function (filter) {
+                            return $.ajax({
+                                type: "GET",
+                                url: "/getExpensesPerUser/",
+                                dataType: "json"
+                            });
+                        }
+                    },
+                });
+            });
+        </script>
+
+    <script>
+                $(function () {
+                    $("#summaryPerUser").jsGrid({
+                        width: "400px",
+
+                        inserting: false,
+                        editing: false,
+                        sorting: true,
+                        paging: false,
+                        autoload: true,
+
+                        noDataContent: "No data for this month. ",
+                        fields: $listFieldsSummary,
+
+                        controller: {
+                            loadData: function (filter) {
+                                return $.ajax({
+                                    type: "GET",
+                                    url: "/getSummaryPerUser/",
+                                    dataType: "json"
+                                });
+                            }
+                        },
+                    });
+                });
+            </script>
 </head>
 
 <body>
     #parse("templates/menu.vm")
 <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
-<div id="main">
-
-    <h1>Rent Calculator</h1>
     <div id="accordion">
-        <h3>Totals for <strong>$currentMonth</strong></h3>
-        <div id="totalAmountPerUser"></div>
+
+        <h3>Summary for <strong>$currentMonth</strong></h3>
+        <div id="summaryPerUser"></div>
 
         <h3>Expenses report</h3>
         <div id="totalExpensesPerUser"></div>
 
-        <h3>Expense Details</h3>
-        <div id="table_total" width="50%"></div>
-
-        <h3>Regular expenses</h3>
-        <div id="tableSettings"></div>
+        <h3>Expense Details for <strong>$currentMonth</strong></h3>
+        <div id="table_total"></div>
     </div>
 
     <div>
         <br/>
-        <button onclick="updateDate(-1)"><<< Previous Month</button>
-        <button onclick="updateDate(1)">Next Month >>></button>
+        <button onclick="updateDate(-1)">&lt;&lt;&lt; Previous Month</button>
+        <button onclick="updateDate(1)">Next Month &gt;&gt;&gt;</button>
     </div>
-</div>
+    #parse("templates/footer.vm")
 </body>
 </html>

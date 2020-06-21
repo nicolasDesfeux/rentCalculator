@@ -23,24 +23,9 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
 
     <script>
-        function updateDate(date) {
-            $.ajax({
-                type: "POST",
-                url: "/updateDate/",
-                dataType: "json",
-                data: {
-                    date: date
-                },
-                success: function (data) {
-                    window.location = "/monthlyView/";
-                }
-            });
-
-        }
-        ;
 
         $(function () {
-            $("#totalAmountPerUser").jsGrid({
+            $("#summaryView").jsGrid({
                 width: "95%",
 
                 inserting: false,
@@ -53,7 +38,7 @@
                 controller: {
                     loadData: function (filter) {
                         return $.ajax({
-                            type: "POST",
+                            type: "GET",
                             url: "/getSummary/",
                             dataType: "json"
                         });
@@ -63,7 +48,7 @@
                     insertItem: $.noop
                 },
 
-                fields: $columnList
+                fields: $listFields
             });
         });
     </script>
@@ -73,9 +58,9 @@
 <body>
     #parse("templates/menu.vm")
 <div id="main">
-    <h2>Summary</h2>
+    <h2>Summary - last year</h2>
     <div id="sumUp">
-        <div id="totalAmountPerUser"></div>
+        <div id="summaryView"></div>
     </div>
 </div>
 </body>

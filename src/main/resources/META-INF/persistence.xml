@@ -4,16 +4,14 @@
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
              version="2.0">
 
-    <persistence-unit name="mongoDbConnexion">
-        <!-- Use the Hibernate OGM provider: configuration will be transparent -->
-        <provider>org.hibernate.ogm.jpa.HibernateOgmPersistence</provider>
+<persistence-unit name="apacheDerby" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <properties>
-            <property name="hibernate.ogm.datastore.provider" value="mongodb"/>
-            <property name="hibernate.ogm.mongodb.host" value="localhost"/>
-            <property name="hibernate.ogm.mongodb.port" value="27017"/>
-            <property name="hibernate.ogm.mongodb.database" value="testNico"/>
-            <property name="hibernate.ogm.datastore.database" value="testNico"/>
-            <property name="hibernate.ogm.mongodb.write_concern" value="ACKNOWLEDGED"/>
-        </properties>
+            <property name="hibernate.connection.url" value="jdbc:derby:myEmbeddedDB;create=true"/>
+            <property name="hibernate.connection.driver_class" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.DerbyTenSevenDialect"/>
+            <property name="hibernate.hbm2ddl.auto" value="create"/>
+            <property name="hibernate.show_sql" value="true"/>
+    </properties>
     </persistence-unit>
 </persistence>
