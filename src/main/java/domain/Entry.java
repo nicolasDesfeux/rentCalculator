@@ -1,24 +1,26 @@
-package domain; /**
+package domain;
+/**
  * Created by Nicolas on 2017-01-02.
  */
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "ENTRY")
 public class Entry extends DomainObject{
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    protected User user;
 
-    private String category;
-    private String description;
-    private String payingTo;
-    private Double amount;
+    protected String category;
+    protected String description;
+    protected String payingTo;
+    protected Double amount;
     @Temporal(TemporalType.DATE)
-    private Date date;
-    private EntryType entryType;
+    protected Date date;
+    protected EntryType entryType;
 
     public Entry(){
     }

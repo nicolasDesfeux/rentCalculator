@@ -1,10 +1,18 @@
+import dao.EntryDao;
 import domain.Entry;
 import domain.EntryType;
+import domain.StagingEntry;
 import domain.User;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
 
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -13,9 +21,58 @@ import java.util.stream.Collectors;
 
 public class IndexController {
 
-    public static ModelAndView confPage(Request re, Response res) throws ParseException, UnknownHostException {
+    public static ModelAndView confPage(Request re, Response res) {
         HashMap<String, Object> model = new HashMap<>();
         return new ModelAndView(model, "templates/users.vm");
+    }
+
+    public static ModelAndView serverImportPage(Request re, Response res, RentCalculator rc) {
+        HashMap<String, Object> model = new HashMap<>();
+        StringBuilder list = new StringBuilder();
+        for (User user : rc.getUserDao().findAll()) {
+            list.append("<option value=\"").append(user.getId()).append("\">").append(user.getFullName()).append("</option>\n");
+        }
+        model.put("userList", list);
+        list = new StringBuilder();
+        Collection<Entry> entries = rc.getEntryDao().findAll();
+
+        Set<String> categoriesSet = new HashSet<>();
+        for (Entry entry : entries) {
+            categoriesSet.add("\"" + entry.getCategory() + "\"");
+        }
+        List<String> categories = new ArrayList<>(categoriesSet);
+        categories.sort(String::compareTo);
+        model.put("categoryList", "[\"\"," + String.join(",", categories) + "]");
+
+        return new ModelAndView(model, "templates/import.vm");
+    }
+
+    public static ModelAndView importFile(Request re, Response res, RentCalculator rc) throws IOException, ServletException, ParseException {
+        HashMap<String, Object> model = new HashMap<>();
+        re.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(""));
+        Part filePart = re.raw().getPart("file");
+        try (InputStream inputStream = filePart.getInputStream()) {
+            int userId = Integer.parseInt(re.raw().getParameter("user"));
+            String s = new String(inputStream.readAllBytes());
+            EntryDao entryDao = rc.getEntryDao();
+            boolean firstLine = true;
+            for (String line : s.split("\n")) {
+                if (!firstLine) {
+                    String[] elements = line.split(",");
+                    String description = elements[4];
+                    description = description.trim().replaceAll("^\"+|\"+$", "");
+                    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+                    Date date = sdf.parse(elements[2]);
+                    StagingEntry e = new StagingEntry(rc.getUserDao().findOne(userId), null, description, Double.parseDouble(elements[6]), date, EntryType.ONETIME);
+                    entryDao.create(e);
+                } else {
+                    firstLine = false;
+                }
+            }
+        } catch(Exception e){
+            res.raw().setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+        }
+        return serverImportPage(re, res, rc);
     }
 
     public static ModelAndView serverMonthlyViewPage(Request re, Response res, RentCalculator rc) throws ParseException, UnknownHostException {
@@ -39,7 +96,7 @@ public class IndexController {
         }
         fieldsList += String.join(",", l) + "]";
         model.put("listFields", fieldsList);
-        model.put("listFieldsSummary", fieldsList.replace("Category","Operation on Joint account"));
+        model.put("listFieldsSummary", fieldsList.replace("Category", "Operation on Joint account"));
         return new ModelAndView(model, "templates/monthlyView.vm");
     }
 
@@ -58,7 +115,7 @@ public class IndexController {
         List<String> lDeposit = new ArrayList<>();
         List<String> lWithdraw = new ArrayList<>();
         map.forEach((user, total) -> {
-            if((total - averageValue) > 0){
+            if ((total - averageValue) > 0) {
                 lWithdraw.add("\"user" + user.getId() + "\":\"" + Math.abs(total - averageValue) + "\"");
             } else {
                 lDeposit.add("\"user" + user.getId() + "\":\"" + Math.abs(total - averageValue) + "\"");
@@ -114,7 +171,7 @@ public class IndexController {
     }
 
     public static String getSummary(Request re, Response res, RentCalculator rc) {
-        Collection<Entry> list = rc.getEntryDao().getAllEntries(rc.getCurrentMonth(),-12);
+        Collection<Entry> list = rc.getEntryDao().getAllEntries(rc.getCurrentMonth(), -12);
         List<String> dates = new ArrayList<>();
         List<Entry> listByDateAndUser = new ArrayList<>();
         SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy");
@@ -143,12 +200,12 @@ public class IndexController {
             System.out.println(listByDateAndUser);
         }
         StringBuilder json = new StringBuilder("[");
-        dates.add(0,"Total");
+        dates.add(0, "Total");
         for (String date : dates) {
             json.append("{\"date\":\"").append(date == null ? "Undefined" : date).append("\",");
             List<String> l = new ArrayList<>();
             List<Entry> totalEntriesPerUser = listByDateAndUser.stream().filter(a -> Objects.equals(sdf.format(a.getDate()), date)).collect(Collectors.toList());
-            if(date!=null && date.equals("Total")){
+            if (date != null && date.equals("Total")) {
                 totalEntriesPerUser = listByDateAndUser.stream().filter(a -> Objects.equals(a.getCategory(), date)).collect(Collectors.toList());
             }
             for (Entry entry : totalEntriesPerUser) {
@@ -164,7 +221,7 @@ public class IndexController {
     public static ModelAndView serverSummaryViewPage(Request re, Response res, RentCalculator rc) {
         HashMap<String, Object> model = new HashMap<>();
         SimpleDateFormat sf = new SimpleDateFormat("MMMM yyyy");
-        
+
         model.put("currentMonth", sf.format(rc.getCurrentMonth()));
         String fieldsList = "[" +
                 "                        {" +
@@ -184,5 +241,10 @@ public class IndexController {
         fieldsList += String.join(",", l) + "]";
         model.put("listFields", fieldsList);
         return new ModelAndView(model, "templates/summaryView.vm");
+    }
+
+    public static String deleteStagingEntry(Request re, Response res, RentCalculator rc) {
+        rc.getStagingEntryDao().deleteById(Long.parseLong(re.params("id")));
+        return "Success";
     }
 }

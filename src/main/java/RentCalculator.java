@@ -1,4 +1,5 @@
 import dao.EntryDao;
+import dao.StagingEntryDao;
 import dao.UserDao;
 import spark.Filters;
 import spark.template.velocity.VelocityTemplateEngine;
@@ -22,6 +23,7 @@ public class RentCalculator {
     private Date currentMonth;
     private UserDao userDao;
     private EntryDao entryDao;
+    private StagingEntryDao stagingEntryDao;
 
     public Date getCurrentMonth() {
         return currentMonth;
@@ -47,6 +49,14 @@ public class RentCalculator {
         this.entryDao = entryDao;
     }
 
+    public StagingEntryDao getStagingEntryDao() {
+        return stagingEntryDao;
+    }
+
+    public void setStagingEntryDao(StagingEntryDao stagingEntryDao) {
+        this.stagingEntryDao = stagingEntryDao;
+    }
+
     public RentCalculator() {
         Calendar c = new GregorianCalendar();
         c.setTime(new Date());
@@ -61,6 +71,7 @@ public class RentCalculator {
                 .createEntityManagerFactory("apacheDerby");
         this.userDao = new UserDao(entityManagerFactory);
         this.entryDao = new EntryDao(entityManagerFactory);
+        this.stagingEntryDao = new StagingEntryDao(entityManagerFactory);
     }
 
     public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException {
@@ -68,7 +79,9 @@ public class RentCalculator {
         boolean isInitialized = rc.getPropValue("initialized") != null && rc.getPropValue("initialized").toLowerCase().equals("yes");
 
         if (!isInitialized) {
+            System.out.println("Starting initial data import... ");
             runScript("importRecords.sql");
+            System.out.println("... Data import completed. ");
         }
 
         staticFileLocation("/public");
@@ -84,12 +97,12 @@ public class RentCalculator {
 
         get("/monthlyView/", (re, res) -> IndexController.serverMonthlyViewPage(re, res, rc), new VelocityTemplateEngine());
         get("/summaryView/", (re, res) -> IndexController.serverSummaryViewPage(re, res, rc), new VelocityTemplateEngine());
-        /*get("/settings/", IndexController::serverSettingsViewPage, new VelocityTemplateEngine());
+        /*get("/settings/", IndexController::serverSettingsViewPage, new VelocityTemplateEngine());*/
 
-        get("/import/new/", ImportController::serveHomePage, new VelocityTemplateEngine());
-        post("/import/new/", ImportController::serveHomePage, new VelocityTemplateEngine()) ;
+        get("/import/", (re, res) -> IndexController.serverImportPage(re, res, rc), new VelocityTemplateEngine());
+        post("/import/", (re, res) -> IndexController.importFile(re, res, rc), new VelocityTemplateEngine());
 
-        post("/updateItem/", EntryController::updateEntry);
+        /*post("/updateItem/", EntryController::updateEntry);
         post("/updateRecurringEntry/", EntryController::updateEntry);
         post("/insertItem/", EntryController::insertEntry);
         post("/insertRecurringItem/", EntryController::insertEntry);
@@ -105,6 +118,8 @@ public class RentCalculator {
         get("/getExpensesPerUser/", (re, res) -> IndexController.getExpensesPerUser(re, res, rc));
         get("/getSummaryPerUser/", (re, res) -> IndexController.getSummaryPerUser(re, res, rc));
         get("/currentMonthEntry/", "text/html", (request, response) -> rc.entryDao.toJson(rc.entryDao.getAllEntries(rc.getCurrentMonth())));
+        get("/getStagingEntries/", "text/html", (request, response) -> rc.stagingEntryDao.toJson(rc.stagingEntryDao.findAll()));
+        delete("/stagingEntry/:id", (re, res) -> IndexController.deleteStagingEntry(re,res,rc));
         get("/getSummary/", (re, res) -> IndexController.getSummary(re, res, rc));
     }
 
@@ -134,7 +149,7 @@ public class RentCalculator {
                     Statement st = conn.createStatement();
                     st.execute(query.toString().replace(";", ""));
                 } catch (SQLException throwables) {
-                    System.out.println(query.toString().replace(";", ""));
+                    System.out.println("QUERY IN ERROR: " + query.toString().replace(";", ""));
                     System.out.println(throwables.getSQLState());
                     throwables.printStackTrace();
                 }

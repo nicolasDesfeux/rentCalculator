@@ -11,7 +11,7 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 import java.util.*;
 
-public class EntryDao extends AbstractHibernateDAO<Entry> implements IEntryDao{
+public class EntryDao extends AbstractHibernateDAO<Entry> implements IOperations<Entry>{
         public EntryDao(EntityManagerFactory entityManagerFactory) {
             super(entityManagerFactory);
             setClazz(Entry.class);
@@ -32,7 +32,6 @@ public class EntryDao extends AbstractHibernateDAO<Entry> implements IEntryDao{
         ParameterExpression<Date> end = criteriaBuilderObj.parameter(Date.class);
         queryObj.select(from).where(criteriaBuilderObj.between(from.get("date"), start, end));
         TypedQuery<Entry> typedQuery = entityManager.createQuery(queryObj);
-        System.out.println(currentMonth);
         Calendar c = new GregorianCalendar();
         c.setTime(currentMonth);
         c.add(Calendar.MONTH,nbMonth);

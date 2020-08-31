@@ -23,4 +23,6 @@ dist/
 nbdist/
 .nb-gradle/
 /myEmbeddedDB/
-/src/main/resources/script/
+/src/main/resources/script/*
+
+*.log

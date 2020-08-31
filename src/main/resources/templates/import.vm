@@ -3,23 +3,163 @@
 
 <head>
     <title>Rent Calculator</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
-    <script type="text/javascript" src="js/jquery-1.12.3.min.js"></script>
-    <script type="text/javascript" src="js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="js/velocity.js"></script>
-    <link rel="stylesheet" href="/general.css">
+    <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css"/>
+        <link type="text/css" rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css"/>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <link rel="stylesheet" href="/general.css">
+        <style>
+            .hide {
+                display: none;
+            }
+        </style>
+    <script
+                src="https://code.jquery.com/jquery-3.1.1.js"
+                integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="
+                crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
+    <script>
+            $(function () {
+                var icons = {
+                    header: "ui-icon-circle-arrow-e",
+                    activeHeader: "ui-icon-circle-arrow-s"
+                };
+                $("#accordion").accordion({
+                    icons: icons,
+                    collapsible: true,
+                    heightStyle: "fill"
+                });
+            });
+        </script>
+    <script>
+
+            $(function () {
+
+                $("#table_total").jsGrid({
+                    width: "90%",
+                    height: "auto",
+
+                    inserting: false,
+                    editing: true,
+                    selecting: true,
+                    sorting: true,
+                    paging: true,
+                    pageSize: 100,
+                    autoload: true,
+
+                    deleteConfirm: "Do you really want to delete this expense entry?",
+
+                    noDataContent: "No data for this month. ",
+                    fields: [
+                        {
+                            name: "id",
+                            type: "text",
+                            width: 50,
+                            visible: false
+                        },
+                        {
+                            name: "date",
+                            type: "date",
+                            width: 150,
+                            title: "Date",
+                            itemTemplate: function(value) {
+                                                            return new Date(value).toDateString();
+                                                        },
+                                                                                     editing: false
+                        },
+                        {
+                            name: "user",
+                            title: "User",
+                            type: "text",
+                            itemTemplate: function(value) {
+                                return value.firstName + ' ' + value.lastName;
+                            },
+                            editing: false
+                        },
+                        {
+                            name: "category",
+                            title: "Category",
+                            type: "select",
+                            width: 200,
+                            items: $categoryList
+
+                        },
+                        {
+                            name: "description",
+                            title: "Description",
+                            type: "text"
+                        },
+                        {
+                            name: "amount",
+                            title: "Amount",
+                            type: "number",
+                            sorting: false,
+                            itemTemplate: function (value) {
+                                return "$" + value;
+                            }
+                        },
+                         {
+                             type: "control"
+                         }
+                    ],
+
+                    controller: {
+                        loadData: function (filter) {
+                            return $.ajax({
+                                type: "GET",
+                                url: "/getStagingEntries/",
+                                dataType: "json"
+                            });
+                        },
+                        insertItem: $.noop,
+                         updateItem: function (item) {
+                             return $.ajax({
+                                 type: "PUT",
+                                 url: "/stagingEntry/",
+                                 dataType: "json",
+                                 data: item.id
+                             });
+                         },
+                         deleteItem: function (item) {
+                             return $.ajax({
+                                 type: "DELETE",
+                                 url: "/stagingEntry/"+item.id
+                             });
+                         }
+                    }
+                });
+            });
+        </script>
+
 </head>
 
 <body>
-<div class="importForm">
-    <form method="post" enctype="multipart/form-data" action="new">
-        File: <input type="file" name="file" size="40" id="test"/>
-        <input type="submit" value="send" name="import"/>
-    </form>
-</div>
+    #parse("templates/menu.vm")
+    <div id="accordion">
+
+        <h3>Import wizard</h3>
+                <div class="importForm">
+                    <form method="post" enctype="multipart/form-data">
+                        File: <input type="file" name="file" size="40" id="file"/><br/>
+                        <label for="users">User: </label>
+                        <select name="user" id="users">$userList</select><br/>
+                        <input type="submit" value="Start Import" name="import"/>
+                    </form>
+                    <br/>
+                    <form method="post" enctype="multipart/form-data">
+                        <input type="submit" value="Import All valid entries" name="importAllValid"/>
+                    </form>
+                </div>
+
+        <h3>Expenses staged</h3>
+        <div id="table_total"></div>
+
+
+    </div>
+
 
 #parse("templates/footer.vm")
 </body>
